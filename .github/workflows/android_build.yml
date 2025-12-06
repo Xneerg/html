@@ -4,7 +4,7 @@ name: Build Android APK with Cordova
 on:
   push:
     branches:
-      - master # Spustí sa pri každom pushi na hlavnú vetvu
+      - master # Spustí sa pri každom pushi na vetvu master
 
 jobs:
   build_android:
@@ -22,25 +22,28 @@ jobs:
     - name: 🔧 Inštalácia Cordova
       run: npm install -g cordova
 
+    # ❗ PRIDANÝ OPRAVNÝ KROK: Vytvorenie štruktúry Android
+    - name: ⚙️ Pridanie platformy Android do projektu
+      run: cordova platform add android
+
     - name: 🛠️ Príprava prostredia Android SDK
-      # Nastaví Android SDK a NDK
+      # Nastaví Android SDK a Javu, ktoré sú potrebné pre kompiláciu
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
         
     - name: 🔨 Cordova Build pre Android (Debug APK)
-      # Buildujeme debug verziu, ktorú je možné hneď nainštalovať
+      # Spustí skutočnú kompiláciu aplikácie
       run: cordova build android --debug
 
     - name: 📦 Nahranie APK
+      # Uloží výsledný súbor APK, aby ste si ho mohli stiahnuť
       uses: actions/upload-artifact@v4
       with:
-        # APK nájdete v tomto adresári
         path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
         name: android-debug-apk-${{ github.sha }}
         retention-days: 5
         
     - name: ✅ Ukončené
-      run: echo "Buildovanie APK dokončené."
-
+      run: echo "Buildovanie APK dokončené a artefakt je pripravený na stiahnutie."
