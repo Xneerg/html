@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prehľad Filmových Plagátov (3 stĺpce)</title>
+    <style>
+        /* CSS pre štýlovanie */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+            margin: 0;
+            color: #333;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        #movies-container {
+            /* Pevná šírka stĺpca pre malý plagát (120px) + 15px medzera */
+            display: grid;
+            /* Na malých obrazovkách necháme auto-fit, aby sa neprekrývalo */
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+            gap: 15px; 
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* MEDIA QUERY: Vynútenie troch stĺpcov na širších obrazovkách */
+        @media (min-width: 450px) {
+            #movies-container {
+                /* Vytvorí striktne 3 stĺpce s rovnakou šírkou */
+                grid-template-columns: repeat(3, 1fr); 
+                /* Nastavíme maximálnu šírku kontajnera pre 3 plagáty (3x120px + 2x15px medzera) */
+                max-width: 400px; 
+            }
+        }
+
+        .movie-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-align: left;
+            cursor: pointer;
+            width: 100%; /* Plagát vyplní celú bunku v grid */
+        }
+
+        .movie-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: auto; 
+            display: block;
+            object-fit: cover; 
+            border-bottom: 1px solid #eee;
+        }
+
+        .movie-info {
+            padding: 6px 8px; /* Menší padding */
+            min-height: 45px; /* Menšia minimálna výška */
+        }
+
+        .title {
+            font-size: 0.85em; /* Menšie písmo */
+            font-weight: 500;
+            margin: 0;
+            color: #333;
+            line-height: 1.2;
+        }
+        
+        .year {
+            font-size: 0.75em; /* Menšie písmo */
+            color: #666;
+            margin: 2px 0 0 0;
+            font-weight: 400;
+        }
+
+        #loading-message {
+            grid-column: 1 / -1; 
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Najnovšie Tituly</h1>
+
+    <div id="movies-container">
+        <p id="loading-message">Načítavam údaje...</p>
+    </div>
+
+    <script>
+        // Funkcia na generovanie HTML kariet
+        function renderMovies(data) {
+            const container = document.getElementById('movies-container');
+            // Vymaže správu o načítaní
+            const loadingMsg = document.getElementById('loading-message');
+            if (loadingMsg) loadingMsg.style.display = 'none';
+            
+            data.forEach(movie => {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+
+                // Pridáme odkaz na TMDB, aby bol plagát klikateľný
+                card.onclick = () => window.open(movie.odkaz_tmdb, '_blank'); 
+                
+                // Generujeme HTML len pre Poster, Slovenský názov a Rok
+                card.innerHTML = `
+                    <img src="${movie.poster}" alt="Poster k filmu ${movie.nazov_sk}">
+                    <div class="movie-info">
+                        <p class="title">${movie.nazov_sk}</p>
+                        <p class="year">(${movie.rok_vydania})</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Použitie Fetch API na načítanie externého JSON súboru
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('test.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Chyba pri načítaní súboru: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    renderMovies(data);
+                })
+                .catch(error => {
+                    console.error('Došlo k chybe:', error);
+                    document.getElementById('movies-container').innerHTML = `<p style="color: red; grid-column: 1 / -1;">Nepodarilo sa načítať dáta z test.json. (Chyba: ${error.message})</p>`;
+                });
+        });
+    </script>
+</body>
+</html>
