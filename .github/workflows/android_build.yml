@@ -1,0 +1,46 @@
+# Súbor: .github/workflows/android_build.yml
+name: Build Android APK with Cordova
+
+on:
+  push:
+    branches:
+      - master # Spustí sa pri každom pushi na hlavnú vetvu
+
+jobs:
+  build_android:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: ⬇️ Checkout kód
+      uses: actions/checkout@v4
+
+    - name: 🔧 Nastavenie Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 🔧 Inštalácia Cordova
+      run: npm install -g cordova
+
+    - name: 🛠️ Príprava prostredia Android SDK
+      # Nastaví Android SDK a NDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: 🔨 Cordova Build pre Android (Debug APK)
+      # Buildujeme debug verziu, ktorú je možné hneď nainštalovať
+      run: cordova build android --debug
+
+    - name: 📦 Nahranie APK
+      uses: actions/upload-artifact@v4
+      with:
+        # APK nájdete v tomto adresári
+        path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        name: android-debug-apk-${{ github.sha }}
+        retention-days: 5
+        
+    - name: ✅ Ukončené
+      run: echo "Buildovanie APK dokončené."
+
